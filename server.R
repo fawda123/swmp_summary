@@ -6,6 +6,7 @@ library(gridExtra)
 library(RColorBrewer)
 library(httr)
 library(XML)
+library(shinyBS)
 
 # names of files on server
 files_s3 <- httr::GET('https://s3.amazonaws.com/swmpagg/')$content
@@ -13,32 +14,107 @@ files_s3 <- rawToChar(files_s3)
 files_s3 <- htmlTreeParse(files_s3, useInternalNodes = T)
 files_s3 <- xpathSApply(files_s3, '//contents//key', xmlValue)
 
-# Define server logic required to generate and plot data
-shinyServer(function(input, output) {
+mo_labs <- c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
+mo_levs <- c('01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12')
 
-  output$outplot <- renderPlot({
+# Define server logic required to generate and plot data
+shinyServer(function(input, output, session) {
+  
+  ## retrieve from AmazonS3, uses httr GET
+  dat <- reactive({
     
-    # input from ui
     stat <- input$stat
-    var <- input$var
-    
-    ##
-    # retrieve from AmazonS3, uses httr GET
     raw_content <- paste0('https://s3.amazonaws.com/swmpagg/', stat, '.RData')
     raw_content <- httr::GET(raw_content)$content
     connect <- rawConnection(raw_content)
     load(connect)
     dat <- get(stat)
     rm(list = stat)
-    close(connect)
+    close(connect) 
+    
+    # year, month categories
+    dat$year <- strftime(dat$datetimestamp, '%Y')
+    dat$month <- strftime(dat$datetimestamp, '%m')
+    dat$month <- factor(dat$month, labels = mo_levs, levels = mo_levs)
+    
+    return(dat)
+    
+  })
+
+  output$years <- renderUI({
+  
+    yrs <- as.numeric(as.character(unique(dat()$year)))
+   
+    sliderInput("years", label = '',  
+      min = min(yrs), max = max(yrs), 
+      value = range(yrs),
+      format = '####'
+    )
+   
+  })
+
+  output$parms <- renderUI({
+  
+    type <- substring(input$stat, 6)
+  
+    vars <- list(
+    
+      wq = list(
+        'Temperature (C)' = 'temp',
+        'Specific conductivity (mS/cm)' = 'spcond',
+        'Salinity (psu)' = 'sal',
+        'Dissolved oxyxgen (%)' = 'do_pct',
+        'Dissolved oxygen (mg/L)' = 'do_mgl',
+        'Depth (m)' = 'depth',
+        'Depth (nonvented, m)' = 'cdepth',
+        'Referenced depth (m)' = 'level',
+        'Referenced depth (nonvented, m)' = 'clevel',
+        'pH' = 'ph',
+        'Turbidity (NTU)' = 'turb',
+        'Chl fluorescence (ug/L)' = 'chlfluor'
+        ),
+      
+      met = list(
+        'Air temperature (C)' = 'atemp',
+        'Relative humidity (%)' = 'rh',
+        'Barometric pressure (mb)' = 'bp',
+        'Wind speed (m/s)' = 'wspd',
+        'Max wind speed (m/s)' = 'maxwspd',
+        'Wind direction (degrees)' = 'wdir',
+        'Wind direction (sd, degrees)' = 'sdwdir',
+        'Total PAR (mmol/m2)' = 'totpar',
+        'Total precipitation (mm)' = 'totprcp',
+        'Cumulative precipitation (mm)' = 'cumprcp',
+        'Total solar radiation (watts/m2)' = 'totsorad'
+        )
+    
+      )
+  
+    # select appropriate type, then remove those w/ no data
+    var_sub <- vars[[type]]
+    nonempties <- colSums(is.na(dat())) == nrow(dat())
+    var_sub <- var_sub[var_sub %in% names(dat())[!nonempties]]
+
+    selectInput(inputId = "var", label = '',  
+      choices = var_sub,
+      selected = var_sub[[1]]
+    )
+   
+  })
+    
+  plotInput <- reactive({
+      
+    # input from ui
+    stat <- input$stat
+    var <- input$var
+    years <- input$years
     
     ##
     # preprocessing
     
-#     browser()
-    
     # subset by variable to plot
-    dat <- subset(dat, select = c('datetimestamp', var))
+    dat_plo <- dat()[dat()$year %in% seq(years[1], years[2]), ]
+    dat_plo <- subset(dat_plo, select = c('datetimestamp', 'year', 'month', var))
     
     # label lookups
     lab_look <- list(
@@ -68,21 +144,13 @@ shinyServer(function(input, output) {
     )
     ylab <- lab_look[[var]]
     
-    # month category
-    mo_labs <- c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
-    mo_levs <- c('01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12')
-    dat$month <- strftime(dat$datetimestamp, '%m')
-    dat$month <- factor(dat$month, labels = mo_levs, levels = mo_levs)
-    
-    # year category
-    dat$year <- strftime(dat$datetimestamp, '%Y')
-    
     # monthly, annual aggs
     agg_fun <- function(x) mean(x, na.rm = T)
     form_in <- formula(paste0(var, ' ~ month'))
-    mo_agg <- aggregate(form_in, data = dat[, !names(dat) %in% c('datetimestamp', 'year')], FUN = agg_fun)
+    mo_agg <- aggregate(form_in, data = dat_plo[, !names(dat_plo) %in% c('datetimestamp', 'year')], FUN = agg_fun)
+    mo_agg_med <- aggregate(form_in, data = dat_plo[, !names(dat_plo) %in% c('datetimestamp', 'year')], FUN = function(x) median(x, na.rm = T))
     form_in <- formula(paste0(var, ' ~ year'))
-    yr_agg <- aggregate(form_in, data = dat[, !names(dat) %in% c('datetimestamp', 'month')], FUN = agg_fun)
+    yr_agg <- aggregate(form_in, data = dat_plo[, !names(dat_plo) %in% c('datetimestamp', 'month')], FUN = agg_fun, na.action = na.pass)
     
     ##
     # plots
@@ -91,7 +159,9 @@ shinyServer(function(input, output) {
     my_theme <- theme(axis.text = element_text(size = 8))
     
     # plot 1 - means and obs
-    p1 <- ggplot(dat, aes_string(x = 'month', y = var)) +
+    cols <- colorRampPalette(c('lightblue', 'lightgreen'))(nrow(mo_agg))
+    cols <- cols[rank(mo_agg[, var])]
+    p1 <- ggplot(dat_plo, aes_string(x = 'month', y = var)) +
       geom_point(size = 2, alpha = 0.5, 
         position=position_jitter(width=0.1)
         ) +
@@ -99,13 +169,13 @@ shinyServer(function(input, output) {
       ylab(ylab) + 
       xlab('Monthly distributions and means') +
       geom_point(data = mo_agg, aes_string(x = 'month', y = var), 
-        colour = 'darkgreen', fill = 'lightgreen', size = 7, pch = 21) + 
+        colour = 'darkgreen', fill = cols, size = 7, pch = 21) + 
       my_theme
     
     # box aggs, colored by median
-    cols <- colorRampPalette(c('lightblue', 'lightgreen'))(nrow(mo_agg))
-    cols <- cols[rank(mo_agg[, var])]
-    p2 <- ggplot(dat, aes_string(x = 'month', y = var)) + 
+    cols <- colorRampPalette(c('lightblue', 'lightgreen'))(nrow(mo_agg_med))
+    cols <- cols[rank(mo_agg_med[, var])]
+    p2 <- ggplot(dat_plo, aes_string(x = 'month', y = var)) + 
       geom_boxplot(fill = cols) +
       theme_classic() +
       ylab(ylab) + 
@@ -113,7 +183,7 @@ shinyServer(function(input, output) {
       my_theme
     
     # month histograms
-    to_plo <- dat
+    to_plo <- dat_plo
     to_plo$month <- factor(to_plo$month, levels = rev(mo_levs), labels = rev(mo_labs))
     p3 <- ggplot(to_plo, aes_string(x = var)) + 
       geom_histogram(aes(y = ..density..), colour = 'lightblue') + 
@@ -127,7 +197,7 @@ shinyServer(function(input, output) {
       my_theme
     
     # monthly means by year
-    to_plo <- ddply(dat, 
+    to_plo <- ddply(dat_plo, 
       .variables = c('month', 'year'), 
       .fun = function(x) mean(x[, var],  na.rm = T)
       )
@@ -140,16 +210,13 @@ shinyServer(function(input, output) {
       theme_classic() +
       ylab('Monthly means') +
       xlab('') +
-      theme(legend.position = 'none') +
+      theme(legend.position = 'top', legend.title = element_blank()) +
+      guides(fill = guide_colorbar(barheight = 0.5)) +
       my_theme
-    
-    #   scale_fill_gradientn(name = 'Correlation', 
-    #     colours = brewer.pal(11, 'GnBu')#, limits = c(0, 1)
-    #     ) 
     
     # monthly anomalies
     mo_agg$month <- factor(mo_agg$month, labels = mo_labs, levels = mo_levs)
-    to_plo <- merge(to_plo, mo_agg, by = 'month')
+    to_plo <- merge(to_plo, mo_agg, by = 'month', all.x = T)
     names(to_plo)[names(to_plo) %in% var] <- 'trend'
     to_plo$anom <- with(to_plo, V1 - trend)
     rngs <- max(abs(range(to_plo$anom, na.rm = T)))
@@ -161,7 +228,8 @@ shinyServer(function(input, output) {
       theme_classic() +
       ylab('Monthly anomalies') +
       xlab('') +
-      theme(legend.position = 'none') +
+      theme(legend.position = 'top', legend.title = element_blank()) +
+      guides(fill = guide_colorbar(barheight= 0.5)) +
       my_theme
     
     # annual anomalies
@@ -170,24 +238,37 @@ shinyServer(function(input, output) {
     p6 <- ggplot(yr_agg, aes(x = year, y = anom, group = 1, fill = anom)) +
       geom_bar(stat = 'identity') +
       scale_fill_gradient2(name = ylab,
-        low = 'lightblue', mid = 'lightgreen', high = 'tomato', midpoint = 0,
-        limits = c(-1, 1)) + 
-      ylim(c(-1, 1)) +
+        low = 'lightblue', mid = 'lightgreen', high = 'tomato', midpoint = 0
+        ) +
+#         limits = c(-1, 1)) + 
+#       ylim(c(-1, 1)) +
       stat_smooth(method = 'lm', se = F, linetype = 'dashed', size = 1) +
       theme_classic() +
       ylab('Annual anomalies') +
       xlab('') +
       theme(legend.position = 'none') +
       my_theme
-    
+
     ##
     # combine plots
-    grid.arrange(
+    arrangeGrob(
       arrangeGrob(p1, p2, ncol = 1), 
       p3, 
-      arrangeGrob(p4, p5, p6, ncol = 1), 
-      ncol = 3, widths = c(1, 0.5, 1))
+      arrangeGrob(p4, p5, p6, ncol = 1, heights = c(1, 1, 0.8)), 
+      ncol = 3, widths = c(1, 0.5, 1)
+    )
     
-    },height = 600, width = 1100)
+    })
+  
+  output$outplot <- renderPlot({
+    print(plotInput())
+    }, height = 600, width = 1100)
+  
+  output$downloadplot <- downloadHandler(
+    filename = function() { paste(input$stat, '.pdf', sep='') },
+    content = function(file) {
+        device <- function(..., width, height) grDevices::pdf(..., width = 13, height = 7.5)
+        ggsave(file, plot = plotInput(), device = device)
+    }) 
   
 })

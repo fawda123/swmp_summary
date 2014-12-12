@@ -1,7 +1,7 @@
 # Shiny app 
 
-Add stuff here
+This repository contains materials for a shiny application to visualizes summaries of SWMP time series.  Click the screenshot below to visit the app.
 
 # Screenshot
 
-<a href="https://beckmw.shinyapps.io/detiding_corrs"><img src = "widg_ex.png"></a>
+<a href="https://beckmw.shinyapps.io/swmp_summary"><img src = "screenshot.png"></a>
