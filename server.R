@@ -86,8 +86,17 @@ shinyServer(function(input, output, session) {
         'Total precipitation (mm)' = 'totprcp',
         'Cumulative precipitation (mm)' = 'cumprcp',
         'Total solar radiation (watts/m2)' = 'totsorad'
+        ), 
+      
+      nut = list(
+        'Orthophosphate (mg/L)' = 'po4f', 
+        'Ammonium (mg/L)' = 'nh4f', 
+        'Nitrite (mg/L)' = 'no2f', 
+        'Nitrate (mg/L)' = 'no3f', 
+        'Nitrite + Nitrate (mg/L)' = 'no23f', 
+        'Chlorophyll (ug/L)' = 'chla_n'
         )
-    
+        
       )
   
     # select appropriate type, then remove those w/ no data
@@ -111,7 +120,7 @@ shinyServer(function(input, output, session) {
     
     ##
     # preprocessing
-    
+
     # subset by variable to plot
     dat_plo <- dat()[dat()$year %in% seq(years[1], years[2]), ]
     dat_plo <- subset(dat_plo, select = c('datetimestamp', 'year', 'month', var))
@@ -140,7 +149,13 @@ shinyServer(function(input, output, session) {
       totpar = 'Total PAR (mmol/m2)',
       totprcp = 'Total precipitation (mm)',
       cumprcp = 'Cumulative precipitation (mm)',
-      totsorad = 'Total solar radiation (watts/m2)'
+      totsorad = 'Total solar radiation (watts/m2)',
+      po4f = 'Orthophosphate (mg/L)', 
+      nh4f = 'Ammonium (mg/L)',
+      no2f = 'Nitrite (mg/L)',
+      no3f = 'Nitrate (mg/L)',
+      no23f = 'Nitrite + Nitrate (mg/L)',
+      chla_n = 'Chlorophyll (ug/L)'
     )
     ylab <- lab_look[[var]]
     
