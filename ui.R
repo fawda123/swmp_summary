@@ -4,6 +4,8 @@ library(shinyBS)
 # Define UI for application
 shinyUI(fluidPage(
   
+  theme = 'styles.css',
+  
   # Application title
   h2("Monthly and annual summary of SWMP parameters"),
   
