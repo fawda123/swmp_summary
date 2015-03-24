@@ -48,7 +48,7 @@ shinyServer(function(input, output, session) {
     sliderInput("years", label = '',  
       min = min(yrs), max = max(yrs), 
       value = range(yrs),
-      format = '####'
+      sep = '', ticks = FALSE
     )
    
   })
@@ -201,7 +201,7 @@ shinyServer(function(input, output, session) {
     to_plo <- dat_plo
     to_plo$month <- factor(to_plo$month, levels = rev(mo_levs), labels = rev(mo_labs))
     p3 <- ggplot(to_plo, aes_string(x = var)) + 
-      geom_histogram(aes(y = ..density..), colour = 'lightblue') + 
+      geom_histogram(aes(y = ..density..), colour = 'lightblue', binwidth = diff(range(to_plo[, var], na.rm = T))/30) + 
       facet_grid(month ~ .) + 
       xlab(ylab) +
       theme_bw(base_family = 'Times') + 
@@ -212,14 +212,20 @@ shinyServer(function(input, output, session) {
       my_theme
     
     # monthly means by year
-    to_plo <- ddply(dat_plo, 
-      .variables = c('month', 'year'), 
-      .fun = function(x) mean(x[, var],  na.rm = T)
-      )
-    to_plo$month <- factor(to_plo$month, labels = mo_labs, level = mo_levs)
+    to_plo <- dat_plo[, names(dat_plo) %in% c('month', 'year', var)]
+    form_in <- as.formula(paste(var, '~ .'))
+    to_plo <- aggregate(form_in, to_plo, function(x) mean(x, na.rm = T),
+      na.action = na.pass)
+    
+    to_plo$month <- factor(to_plo$month, labels = mo_labs, levels = mo_levs)
+    names(to_plo)[names(to_plo) %in% var] <- 'V1'
     midpt <- mean(to_plo$V1, na.rm = T)
-    p4 <- ggplot(to_plo, aes(x = year, y = month, fill = V1)) +
+    p4 <- ggplot(subset(to_plo, !is.na(V1)), 
+        aes(x = year, y = month, fill = V1)) +
       geom_tile() +
+      geom_tile(data = subset(to_plo, is.na(V1)), 
+        aes(x = year, y = month), fill = NA
+        )  +
       scale_fill_gradient2(name = ylab,
         low = 'lightblue', mid = 'lightgreen', high = 'tomato', midpoint = midpt) +
       theme_classic() +
@@ -235,8 +241,12 @@ shinyServer(function(input, output, session) {
     names(to_plo)[names(to_plo) %in% var] <- 'trend'
     to_plo$anom <- with(to_plo, V1 - trend)
     rngs <- max(abs(range(to_plo$anom, na.rm = T)))
-    p5 <- ggplot(to_plo, aes(x = year, y = month, fill = anom)) +
+    p5 <- ggplot(subset(to_plo, !is.na(anom)), 
+        aes(x = year, y = month, fill = anom)) +
       geom_tile() +
+      geom_tile(data = subset(to_plo, is.na(anom)), 
+        aes(x = year, y = month), fill = NA
+        ) +
       scale_fill_gradient2(name = ylab,
         low = 'lightblue', mid = 'lightgreen', high = 'tomato', midpoint = 0,
         limits = c(-1 * rngs, rngs)) +
@@ -255,8 +265,6 @@ shinyServer(function(input, output, session) {
       scale_fill_gradient2(name = ylab,
         low = 'lightblue', mid = 'lightgreen', high = 'tomato', midpoint = 0
         ) +
-#         limits = c(-1, 1)) + 
-#       ylim(c(-1, 1)) +
       stat_smooth(method = 'lm', se = F, linetype = 'dashed', size = 1) +
       theme_classic() +
       ylab('Annual anomalies') +
