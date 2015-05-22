@@ -107,30 +107,30 @@ shinyServer(function(input, output, session) {
    
   })
     
-  plotInput <- reactive({
-      
+  output$outplot <- renderPlot({
+    
     # input from ui
     stat <- input$stat
     var <- input$var
     years <- input$years
     
-    ##
-    # preprocessing
-    
     # use plot_summary
     plot_summary(dat(), var, years)
-    
-    })
   
-  output$outplot <- renderPlot({
-    print(plotInput())
     }, height = 600, width = 1100)
   
   output$downloadplot <- downloadHandler(
     filename = function() { paste(input$stat, '.pdf', sep='') },
     content = function(file) {
-        device <- function(..., width, height) grDevices::pdf(..., width = 13, height = 7.5)
-        ggsave(file, plot = plotInput(), device = device)
-    }) 
+      # input from ui
+      stat <- input$stat
+      var <- input$var
+      years <- input$years
+    
+      pdf(file, width = 13, height = 7.5)
+      plot_summary(dat(), var, years)
+      dev.off()
+   }
+  ) 
   
 })
