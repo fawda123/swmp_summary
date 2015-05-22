@@ -107,21 +107,28 @@ shinyServer(function(input, output, session) {
    
   })
     
-  output$outplot <- renderPlot({
-    
+  plotInput <- reactive({
+      
     # input from ui
     stat <- input$stat
     var <- input$var
     years <- input$years
     
-    # use plot_summary
+    # output
     plot_summary(dat(), var, years)
+    
+    })
+
+  output$outplot <- renderPlot({
   
+    plotInput()
+    
     }, height = 600, width = 1100)
   
   output$downloadplot <- downloadHandler(
     filename = function() { paste(input$stat, '.pdf', sep='') },
     content = function(file) {
+      
       # input from ui
       stat <- input$stat
       var <- input$var
@@ -130,6 +137,7 @@ shinyServer(function(input, output, session) {
       pdf(file, width = 13, height = 7.5)
       plot_summary(dat(), var, years)
       dev.off()
+      
    }
   ) 
   

@@ -64,9 +64,11 @@ plot_summary.swmpr <- function(swmpr_in, param, years = NULL, ...){
   # met is monthly, except cumprcp which is daily max
   if(grepl('met$', stat)){
     dat <- aggregate.swmpr(swmpr_in, by = 'days', params = param)
-    cumprcp <- aggregate(swmpr_in, by = 'days', FUN = function(x) max(x, na.rm = T), 
-      params = 'cumprcp')
-    dat$cumprcp <- cumprcp$cumprcp
+    if('cumprcp' %in% names(swmpr_in)){
+      cumprcp <- aggregate(swmpr_in, by = 'days', FUN = function(x) max(x, na.rm = T), 
+        params = 'cumprcp')
+      dat$cumprcp <- cumprcp$cumprcp
+    }
   }
   
   mo_labs <- c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
