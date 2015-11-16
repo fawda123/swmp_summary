@@ -107,7 +107,7 @@ shinyServer(function(input, output, session) {
    
   })
     
-  plotInput <- reactive({
+  plotInput <- function(){
       
     # input from ui
     stat <- input$stat
@@ -117,7 +117,7 @@ shinyServer(function(input, output, session) {
     # output
     plot_summary(dat(), var, years)
     
-    })
+    }
 
   output$outplot <- renderPlot({
   

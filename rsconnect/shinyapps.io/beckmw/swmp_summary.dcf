@@ -1,4 +1,6 @@
 name: swmp_summary
 account: beckmw
-bundleId: 191237
+server: shinyapps.io
+bundleId: 312114
 url: https://beckmw.shinyapps.io/swmp_summary
+when: 1447713855.0487
