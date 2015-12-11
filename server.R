@@ -106,7 +106,8 @@ shinyServer(function(input, output, session) {
     )
    
   })
-    
+  
+  # whole plot  
   plotInput <- function(){
       
     # input from ui
@@ -119,26 +120,138 @@ shinyServer(function(input, output, session) {
     
     }
 
+  # separate plots
+  plotInput_sep <- function(){
+      
+    # input from ui
+    stat <- input$stat
+    var <- input$var
+    years <- input$years
+    
+    # output
+    plot_summary(dat(), var, years, plt_sep = TRUE)
+    
+    }
+  
+  # tabular data
+  tabInput <- function(){
+      
+    # input from ui
+    stat <- input$stat
+    var <- input$var
+    years <- input$years
+    
+    # output
+    plot_summary(dat(), var, years, sum_out = TRUE)
+    
+    }
+  
   output$outplot <- renderPlot({
   
     plotInput()
     
     }, height = 600, width = 1100)
   
+  # table for monthly summary
+  output$outtab_sum_mo <- renderDataTable({
+    tabInput()$sum_mo
+    })
+  
+  # table for monthly, yearly summary
+  output$outtab_sum_moyr <- renderDataTable({
+    tabInput()$sum_moyr
+    })
+  
+  # table for yearly summary
+  output$outtab_sum_yr <- renderDataTable({
+    tabInput()$sum_yr
+    })
+  
+  
+  ## downloads
+  
+  # whole plot
   output$downloadplot <- downloadHandler(
     filename = function() { paste(input$stat, '.pdf', sep='') },
     content = function(file) {
-      
-      # input from ui
-      stat <- input$stat
-      var <- input$var
-      years <- input$years
     
-      pdf(file, width = 13, height = 7.5)
-      plot_summary(dat(), var, years)
+      pdf(file, width = input$width, height =input$height, family = 'serif')
+      plotInput()
       dev.off()
       
    }
-  ) 
+  )
   
+  # monthly means
+  output$downloadplot1 <- downloadHandler(
+    filename = function() { paste(input$stat, '1.pdf', sep='') },
+    content = function(file) {
+      
+      pdf(file, width = input$width, height =input$height, family = 'serif')
+      print(plotInput_sep()[[1]])
+      dev.off()
+      
+   }
+  )
+  
+  # monthly boxplots
+  output$downloadplot2 <- downloadHandler(
+    filename = function() { paste(input$stat, '2.pdf', sep='') },
+    content = function(file) {
+      
+      pdf(file, width = input$width, height =input$height, family = 'serif')
+      print(plotInput_sep()[[2]])
+      dev.off()
+      
+   }
+  )
+  
+  # monthly histograms
+  output$downloadplot3 <- downloadHandler(
+    filename = function() { paste(input$stat, '3.pdf', sep='') },
+    content = function(file) {
+      
+      pdf(file, width = input$width, height =input$height, family = 'serif')
+      print(plotInput_sep()[[3]])
+      dev.off()
+      
+   }
+  )
+  
+  # monthly, annual means
+  output$downloadplot4 <- downloadHandler(
+    filename = function() { paste(input$stat, '4.pdf', sep='') },
+    content = function(file) {
+      
+      pdf(file, width = input$width, height =input$height, family = 'serif')
+      print(plotInput_sep()[[4]])
+      dev.off()
+      
+   }
+  )
+  
+  # monthly, annual anomalies
+  output$downloadplot5 <- downloadHandler(
+      filename = function() { paste(input$stat, '5.pdf', sep='') },
+      content = function(file) {
+        
+        pdf(file, width = input$width, height =input$height, family = 'serif')
+        print(plotInput_sep()[[5]])
+        dev.off()
+        
+     }
+    )
+  
+  # annual anomalies
+  output$downloadplot6 <- downloadHandler(
+      filename = function() { paste(input$stat, '6.pdf', sep='') },
+      content = function(file) {
+        
+        pdf(file, width = input$width, height =input$height, family = 'serif')
+        print(plotInput_sep()[[6]])
+        dev.off()
+        
+     }
+    )
+
 })

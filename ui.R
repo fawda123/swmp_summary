@@ -363,13 +363,77 @@ shinyUI(fluidPage(
     
   ),
   
-  downloadButton('downloadplot', 'Download plot'),
-  
-  # Show the plot,
-  plotOutput("outplot", width = "100%"),
-  
-  tags$style(type="text/css",
-      ".shiny-output-error { visibility: hidden; }",
-      ".shiny-output-error:before { visibility: hidden; }")
+  fluidRow(
+    
+    tabsetPanel(
+      
+      tabPanel('Plot',
+        
+        # Show the plot,
+        plotOutput("outplot", width = "100%"),
+        
+        tags$style(type="text/css",
+            ".shiny-output-error { visibility: hidden; }",
+            ".shiny-output-error:before { visibility: hidden; }")
+        
+      ), 
+      
+      tabPanel('Monthly summary',
+        
+        column(12, 
+          p('Tabular summary of monthly aggregations showing minimum, first quartile, median, mean, third quartile, maximum, missing values, and variance.'),
+          dataTableOutput('outtab_sum_mo')
+        )
+        
+      ), 
+      
+      tabPanel('Monthly, annual summary',
+        
+        column(12, 
+          p('Average values for monthly aggregations by year.  The trend indicates the average value across all years for the same month and the anomaly is the difference between the mean and trend.'),
+          dataTableOutput('outtab_sum_moyr')
+          )
+          
+        ), 
+      
+      tabPanel('Annual summary',
+        
+        column(12, 
+          p('Average values for annual aggregations.  The anomalies are the differences between the annual averages and overall average.'),
+          dataTableOutput('outtab_sum_yr')
+          )
+        ), 
+      
+      tabPanel('Downloads',
+        
+        column(12, 
+          p('Click the buttons below to download a pdf of the plots.'),
+          column(4, 
+            numericInput('height', 'Plot height (in)', value = 8, min = 0, step = 1)
+            ),
+          column(4, 
+            numericInput('width', 'Plot width (in)', value = 13, min = 0, step = 1)
+            ),
+          column(12, 
+            HTML('<p></p>'),
+            downloadButton('downloadplot', 'Complete plot'),
+            HTML('<p></p>'),
+            downloadButton('downloadplot1', 'Monthly means'),
+            HTML('<p></p>'),
+            downloadButton('downloadplot2', 'Monthly boxplots'),
+            HTML('<p></p>'),
+            downloadButton('downloadplot3', 'Monthly histograms'),
+            HTML('<p></p>'),
+            downloadButton('downloadplot4', 'Monthly, annual means'),
+            HTML('<p></p>'),
+            downloadButton('downloadplot5', 'Monthly, annual anomalies'),
+            HTML('<p></p>'),
+            downloadButton('downloadplot6', 'Annual anomalies')
+            )
+          )
+          
+        )
+      
+  ))
     
 ))
