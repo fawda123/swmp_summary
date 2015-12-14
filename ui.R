@@ -406,33 +406,41 @@ shinyUI(fluidPage(
       
       tabPanel('Downloads',
         
-        column(12, 
-          p('Click the buttons below to download a pdf of the plots.'),
-          column(4, 
-            numericInput('height', 'Plot height (in)', value = 8, min = 0, step = 1)
+          column(7, 
+            h4('Figures'), 
+            column(6, 
+              numericInput('height', 'Plot height (in)', value = 8, min = 0, step = 1),
+              numericInput('width', 'Plot width (in)', value = 13, min = 0, step = 1)
+              ),
+            column(6, 
+              HTML('<p></p>'),
+              downloadButton('downloadplot', 'Complete plot'),
+              HTML('<p></p>'),
+              downloadButton('downloadplot1', 'Monthly means'),
+              HTML('<p></p>'),
+              downloadButton('downloadplot2', 'Monthly boxplots'),
+              HTML('<p></p>'),
+              downloadButton('downloadplot3', 'Monthly histograms'),
+              HTML('<p></p>'),
+              downloadButton('downloadplot4', 'Monthly, annual means'),
+              HTML('<p></p>'),
+              downloadButton('downloadplot5', 'Monthly, annual anomalies'),
+              HTML('<p></p>'),
+              downloadButton('downloadplot6', 'Annual anomalies')
+              )
             ),
-          column(4, 
-            numericInput('width', 'Plot width (in)', value = 13, min = 0, step = 1)
-            ),
-          column(12, 
-            HTML('<p></p>'),
-            downloadButton('downloadplot', 'Complete plot'),
-            HTML('<p></p>'),
-            downloadButton('downloadplot1', 'Monthly means'),
-            HTML('<p></p>'),
-            downloadButton('downloadplot2', 'Monthly boxplots'),
-            HTML('<p></p>'),
-            downloadButton('downloadplot3', 'Monthly histograms'),
-            HTML('<p></p>'),
-            downloadButton('downloadplot4', 'Monthly, annual means'),
-            HTML('<p></p>'),
-            downloadButton('downloadplot5', 'Monthly, annual anomalies'),
-            HTML('<p></p>'),
-            downloadButton('downloadplot6', 'Annual anomalies')
+          column(4, h4('Tables'),
+            column(4, 
+              p(), 
+              downloadButton('tab_mo', 'Monthly summary'),
+              p(),
+              downloadButton('tab_moyr', 'Monthly, annual summary'),
+              p(),
+              downloadButton('tab_yr', 'Annual summary')
             )
           )
-          
-        )
+        
+      )
       
   ))
     

@@ -253,5 +253,35 @@ shinyServer(function(input, output, session) {
         
      }
     )
+  
+  # table of monthly summaries
+  output$tab_mo <- downloadHandler(
+    filename = function() { paste(input$stat, '_tab1.csv', sep='') },
+    content = function(file) {
+  
+      write.csv(tabInput()$sum_mo, file, quote = F, row.names = F)
+      
+   }
+  )
+  
+  # table of monthly, yearly summaries
+  output$tab_moyr <- downloadHandler(
+    filename = function() { paste(input$stat, '_tab2.csv', sep='') },
+    content = function(file) {
+    
+      write.csv(tabInput()$sum_moyr, file, quote = F, row.names = F)
+      
+   }
+  )
+  
+  # table of yearly summaries
+  output$tab_yr <- downloadHandler(
+    filename = function() { paste(input$stat, '_tab3.csv', sep='') },
+    content = function(file) {
+    
+      write.csv(tabInput()$sum_yr, file, quote = F, row.names = F)
+      
+   }
+  )
 
 })
