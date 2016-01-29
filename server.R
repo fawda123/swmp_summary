@@ -13,6 +13,7 @@ files_s3 <- httr::GET('https://s3.amazonaws.com/swmpagg/')$content
 files_s3 <- rawToChar(files_s3)
 files_s3 <- htmlTreeParse(files_s3, useInternalNodes = T)
 files_s3 <- xpathSApply(files_s3, '//contents//key', xmlValue)
+stats <- gsub('\\.RData', '', files_s3)
 
 source('R/funcs.R')
 
@@ -37,6 +38,15 @@ shinyServer(function(input, output, session) {
     
   })
 
+  ## dynamic UI
+  output$stat <- renderUI({
+        
+    selectInput("stat", label = '', 
+    choices = stats,
+    selected = 'apaeswq')  
+    
+  })
+  
   output$years <- renderUI({
   
     yrs <- as.numeric(as.character(unique(dat()$year)))
