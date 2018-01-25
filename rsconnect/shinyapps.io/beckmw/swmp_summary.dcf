@@ -1,6 +1,10 @@
 name: swmp_summary
+title:
+username:
 account: beckmw
 server: shinyapps.io
-bundleId: 787212
+hostUrl: https://api.shinyapps.io/v1
+appId: 25267
+bundleId: 1192940
 url: https://beckmw.shinyapps.io/swmp_summary/
-when: 1492026337.39173
+when: 1516905142.42489
