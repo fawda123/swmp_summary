@@ -9,9 +9,9 @@ shinyUI(fluidPage(
   # Application title
   h2("Monthly and annual summary of SWMP parameters"),
   
-  h4('Created by Marcus W. Beck,', a('marcusb@sccwrp.org', href = 'mailto:marcusb@sccwrp.org'), "Todd O'Brien,", a('todd.obrien@noaa.gov', href = 'mailto:todd.obrien@noaa.gov')),
+  h4('Created by Marcus W. Beck,', a('mbeck@tbep.org', href = 'mailto:mbeck@tbep.org'), "Todd O'Brien,", a('todd.obrien@noaa.gov', href = 'mailto:todd.obrien@noaa.gov')),
   
-  p('This interactive widget provides graphical summaries of water quality, weather, and nutrient station data from the System Wide Monitoring Program of the National Estuarine Research Reserve System ', a('(NERRS).', href = 'http://www.nerrs.noaa.gov/', target = '_blank'), 'The drop down menus can be used to select the station, date range, and parameter for plotting. The raw data used for plotting include all SWMP records from the earliest date at each station after processing to remove QAQC flags.  The data include observations through December 2017 and are current as of July 17, 2018.  Plots are based on daily averages for each parameter.  Cumulative precipitation data are based on the daily maximum. See the', a('GitHub repository', href='https://github.com/fawda123/swmp_summary', target = '_blank'), 'for source code.'),
+  p('This interactive widget provides graphical summaries of water quality, weather, and nutrient station data from the System Wide Monitoring Program of the National Estuarine Research Reserve System ', a('(NERRS).', href = 'http://www.nerrs.noaa.gov/', target = '_blank'), 'The drop down menus can be used to select the station, date range, and parameter for plotting. The raw data used for plotting include all SWMP records from the earliest date at each station after processing to remove QAQC flags.  The data include observations through December 2019 and are current as of March 13, 2020.  Plots are based on daily averages for each parameter.  Cumulative precipitation data are based on the daily maximum. See the', a('GitHub repository', href='https://github.com/fawda123/swmp_summary', target = '_blank'), 'for source code.'),
   
   # buttons on top
   fluidRow(
@@ -58,7 +58,7 @@ shinyUI(fluidPage(
         
         column(12, 
           p('Tabular summary of monthly aggregations showing minimum, first quartile, median, mean, third quartile, maximum, missing values, and variance.'),
-          dataTableOutput('outtab_sum_mo')
+          DT::dataTableOutput('outtab_sum_mo')
         )
         
       ), 
@@ -67,7 +67,7 @@ shinyUI(fluidPage(
         
         column(12, 
           p('Average values for monthly aggregations by year.  The trend indicates the average value across all years for the same month and the anomaly is the difference between the mean and trend.'),
-          dataTableOutput('outtab_sum_moyr')
+          DT::dataTableOutput('outtab_sum_moyr')
           )
           
         ), 
@@ -76,7 +76,7 @@ shinyUI(fluidPage(
         
         column(12, 
           p('Average values for annual aggregations.  The anomalies are the differences between the annual averages and overall average.'),
-          dataTableOutput('outtab_sum_yr')
+          DT::dataTableOutput('outtab_sum_yr')
           )
         ), 
       

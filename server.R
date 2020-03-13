@@ -7,6 +7,8 @@ library(RColorBrewer)
 library(httr)
 library(XML)
 library(shinyBS)
+library(DT)
+library(magrittr)
 
 # names of files on server
 files_s3 <- httr::GET('https://s3.amazonaws.com/swmpagg/')$content
@@ -24,6 +26,9 @@ shinyServer(function(input, output, session) {
   dat <- reactive({
     
     stat <- input$stat
+    
+    req(stat)
+    
     raw_content <- paste0('https://s3.amazonaws.com/swmpagg/', stat, '.RData')
     raw_content <- httr::GET(raw_content)$content
     connect <- rawConnection(raw_content)
@@ -40,7 +45,9 @@ shinyServer(function(input, output, session) {
 
   ## dynamic UI
   output$stat <- renderUI({
-        
+
+    req(stats)      
+    
     selectInput("stat", label = '', 
     choices = stats,
     selected = 'apaeswq')  
@@ -49,6 +56,8 @@ shinyServer(function(input, output, session) {
   
   output$years <- renderUI({
   
+    req(dat())
+    
     yrs <- as.numeric(as.character(unique(dat()$year)))
    
     sliderInput("years", label = '',  
@@ -61,6 +70,8 @@ shinyServer(function(input, output, session) {
 
   output$parms <- renderUI({
   
+    req(input$stat)
+    
     type <- substring(input$stat, 6)
   
     vars <- list(
@@ -125,6 +136,9 @@ shinyServer(function(input, output, session) {
     var <- input$var
     years <- input$years
     
+    req(dat())
+    req(var)
+    
     # output
     plot_summary(dat(), var, years)
     
@@ -138,6 +152,8 @@ shinyServer(function(input, output, session) {
     var <- input$var
     years <- input$years
     
+    req(var)
+    
     # output
     plot_summary(dat(), var, years, plt_sep = TRUE)
     
@@ -150,7 +166,7 @@ shinyServer(function(input, output, session) {
     stat <- input$stat
     var <- input$var
     years <- input$years
-    
+
     # output
     plot_summary(dat(), var, years, sum_out = TRUE)
     
@@ -163,18 +179,18 @@ shinyServer(function(input, output, session) {
     }, height = 600, width = 1100)
   
   # table for monthly summary
-  output$outtab_sum_mo <- renderDataTable({
-    tabInput()$sum_mo
+  output$outtab_sum_mo <- DT::renderDataTable({
+    datatable(tabInput()$sum_mo) %>% formatRound(c(2:7, 9), 1)
     })
   
   # table for monthly, yearly summary
-  output$outtab_sum_moyr <- renderDataTable({
-    tabInput()$sum_moyr
+  output$outtab_sum_moyr <- DT::renderDataTable({
+    datatable(tabInput()$sum_moyr) %>% formatRound(c(3:5), 1)
     })
   
   # table for yearly summary
-  output$outtab_sum_yr <- renderDataTable({
-    tabInput()$sum_yr
+  output$outtab_sum_yr <- DT::renderDataTable({
+    datatable(tabInput()$sum_yr) %>% formatRound(c(2:3), 1)
     })
   
   

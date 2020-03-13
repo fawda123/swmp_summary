@@ -299,7 +299,7 @@ plot_summary.swmpr <- function(swmpr_in, param, years = NULL, plt_sep = FALSE, s
     arrangeGrob(p1, p2, ncol = 1), 
     p3, 
     arrangeGrob(p4, p5, p6, ncol = 1, heights = c(1, 1, 0.8)), 
-    ncol = 3, widths = c(1, 0.5, 1)
+    ncol = 3, widths = c(0.8, 0.5, 1.2)
   ))
 
 }
