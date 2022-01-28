@@ -16,25 +16,32 @@ shinyUI(fluidPage(
   # buttons on top
   fluidRow(
     
-    column(4, 
-      h3('Select station'),
+    column(3, 
+      h4('Select station'),
   
       uiOutput("stat")
       
     ),
     
-    column(4,
-      h3('Select date range'), 
+    column(3,
+      h4('Select date range'), 
     
       uiOutput("years")
       
     ),
   
-    column(4,
-      h3('Select variable'), 
+    column(3,
+      h4('Select variable'), 
     
       uiOutput("parms")
       
+    ),
+    
+    column(3,
+      h4('Fill missing monthly values with average?'), 
+           
+        selectInput('fill', label = '', choices = c(FALSE, TRUE))
+           
     )
     
   ),

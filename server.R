@@ -135,12 +135,13 @@ shinyServer(function(input, output, session) {
     stat <- input$stat
     var <- input$var
     years <- input$years
+    fill <- input$fill
     
     req(dat())
     req(var)
     
     # output
-    plot_summary(dat(), var, years)
+    plot_summary(dat(), var, years, fill = fill)
     
     }
 
@@ -151,11 +152,12 @@ shinyServer(function(input, output, session) {
     stat <- input$stat
     var <- input$var
     years <- input$years
+    fill <- input$fill
     
     req(var)
     
     # output
-    plot_summary(dat(), var, years, plt_sep = TRUE)
+    plot_summary(dat(), var, years, plt_sep = TRUE, fill = fill)
     
     }
   
@@ -166,9 +168,10 @@ shinyServer(function(input, output, session) {
     stat <- input$stat
     var <- input$var
     years <- input$years
-
+    fill <- input$fill
+    
     # output
-    plot_summary(dat(), var, years, sum_out = TRUE)
+    plot_summary(dat(), var, years, sum_out = TRUE, fill = fill)
     
     }
   
