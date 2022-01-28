@@ -129,7 +129,6 @@ plot_summary.swmpr <- function(swmpr_in, param, years = NULL, plt_sep = FALSE, s
   
   }
 
-  
   # label lookups
   lab_look <- list(
     temp = 'Temperature (C)', 
