@@ -56,11 +56,16 @@ plot_summary <- function(swmpr_in, ...) UseMethod('plot_summary')
 #' @concept analyze
 #' 
 #' @method plot_summary swmpr
-plot_summary.swmpr <- function(swmpr_in, param, years = NULL, plt_sep = FALSE, sum_out = FALSE, fill = F, ...){
+plot_summary.swmpr <- function(swmpr_in, param, years = NULL, plt_sep = FALSE, sum_out = FALSE, fill = c('none', 'monoclim', 'interp'), ...){
+  
+  fill <- match.arg(fill)
   
   stat <- attr(swmpr_in, 'station')
   parameters <- attr(swmpr_in, 'parameters')
   date_rng <- attr(swmpr_in, 'date_rng')
+  
+  mo_labs <- c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
+  mo_levs <- c('01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12')
   
   # sanity checks
   if(is.null(years)){
@@ -73,6 +78,57 @@ plot_summary.swmpr <- function(swmpr_in, param, years = NULL, plt_sep = FALSE, s
   
   ##
   # preprocessing
+  
+  # fill na
+  if(fill == 'monoclim'){
+    
+    names(swmpr_in)[names(swmpr_in) %in% param] <- 'toest'
+    
+    swmpr_in$year <- strftime(swmpr_in$datetimestamp, '%Y')
+    swmpr_in$month <- strftime(swmpr_in$datetimestamp, '%m')
+    swmpr_in$month <- factor(swmpr_in$month, labels = mo_levs, levels = mo_levs)
+    
+    swmpr_in <- tidyr::complete(swmpr_in, year, month, fill = list(toest = NA))
+    swmpr_in <- dplyr::group_by(swmpr_in, month)
+    swmpr_in <- dplyr::mutate(swmpr_in, 
+                             toest = dplyr::case_when(
+                               is.na(toest) ~ mean(toest, na.rm = T), 
+                               T ~ toest
+                             ))
+    swmpr_in <- dplyr::ungroup(swmpr_in)
+    swmpr_in$datetimestamp <- as.Date(ifelse(is.na(swmpr_in$datetimestamp), 
+                                             paste(swmpr_in$year, swmpr_in$month, '01', sep = '-'), 
+                                             as.character(as.Date(swmpr_in$datetimestamp))))
+    swmpr_in <- as.data.frame(swmpr_in, stringsAsFactors = F)
+    
+    
+    names(swmpr_in)[names(swmpr_in) %in% 'toest'] <- param
+    
+    swmpr_in <- swmpr(swmpr_in, stat)
+
+  }
+  
+  if(fill == 'interp'){
+    
+    names(swmpr_in)[names(swmpr_in) %in% param] <- 'toest'
+    
+    swmpr_in$year <- strftime(swmpr_in$datetimestamp, '%Y')
+    swmpr_in$month <- strftime(swmpr_in$datetimestamp, '%m')
+    swmpr_in$month <- factor(swmpr_in$month, labels = mo_levs, levels = mo_levs)
+    
+    swmpr_in <- tidyr::complete(swmpr_in, year, month, fill = list(toest = NA))
+    swmpr_in$datetimestamp <- as.Date(ifelse(is.na(swmpr_in$datetimestamp), 
+                                             paste(swmpr_in$year, swmpr_in$month, '01', sep = '-'), 
+                                             as.character(as.Date(swmpr_in$datetimestamp))))
+    swmpr_in <- as.data.frame(swmpr_in, stringsAsFactors = F)
+    
+    names(swmpr_in)[names(swmpr_in) %in% 'toest'] <- param
+    
+    swmpr_in <- swmpr(swmpr_in, stat)
+    
+    swmpr_in <- na.approx.swmpr(swmpr_in, maxgap = 1e10)
+  
+  }
   
   ## aggregate by averages for quicker plots
   # nuts are monthly
@@ -98,8 +154,7 @@ plot_summary.swmpr <- function(swmpr_in, param, years = NULL, plt_sep = FALSE, s
     
   }
   
-  mo_labs <- c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
-  mo_levs <- c('01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12')
+
   dat$year <- strftime(dat$datetimestamp, '%Y')
   dat$month <- strftime(dat$datetimestamp, '%m')
   dat$month <- factor(dat$month, labels = mo_levs, levels = mo_levs)
@@ -109,25 +164,6 @@ plot_summary.swmpr <- function(swmpr_in, param, years = NULL, plt_sep = FALSE, s
 
   # remove datetimestamp
   dat_plo <- dat_plo[, !names(dat_plo) %in% 'datetimestamp']
-  
-  # fill missing plots if true
-  if(fill){
-    
-    names(dat_plo)[names(dat_plo) %in% param] <- 'toest'
-
-    dat_plo <- tidyr::complete(dat_plo, year, month, fill = list(toest = NA))
-    dat_plo <- dplyr::group_by(dat_plo, month)
-    dat_plo <- dplyr::mutate(dat_plo, 
-      toest = dplyr::case_when(
-        is.na(toest) ~ mean(toest, na.rm = T), 
-        T ~ toest
-      ))
-    dat_plo <- dplyr::ungroup(dat_plo)
-    dat_plo <- as.data.frame(dat_plo, stringsAsFactors = F)
-    
-    names(dat_plo)[names(dat_plo) %in% 'toest'] <- param
-  
-  }
 
   # label lookups
   lab_look <- list(
@@ -634,4 +670,92 @@ my_summary <- function(v){
     res <- summary(v)
   }
   return(res)
+}
+
+#' Linearly interpolate gaps
+#' 
+#' Linearly interpolate gaps in swmpr data within a maximum size 
+#' 
+#' @param object input swmpr object
+#' @param params is chr string of swmpr parameters to smooth, default all
+#' @param maxgap numeric vector indicating maximum gap size to interpolate where size is numer of records, must be explicit
+#' @param ... additional arguments passed to other methods
+#' 
+#' @import zoo
+#'
+#' @export
+#' 
+#' @method na.approx swmpr
+#' 
+#' @concept analyze
+#' 
+#' @details A common approach for handling missing data in time series analysis is linear interpolation.  A simple curve fitting method is used to create a continuous set of records between observations separated by missing data.  A required argument for the function is \code{maxgap} which defines the maximum gap size  for interpolation. The ability of the interpolated data to approximate actual, unobserved trends is a function of the gap size.  Interpolation between larger gaps are less likely to resemble patterns of an actual parameter, whereas interpolation between smaller gaps may be more likely to resemble actual patterns.  An appropriate gap size limit depends on the unique characteristics of specific datasets or parameters.  
+#' 
+#' @seealso \code{\link[zoo]{na.approx}}
+#' 
+#' @return Returns a swmpr object. QAQC columns are removed if included with input object.
+#' 
+#' @examples
+#' data(apadbwq)
+#' dat <- qaqc(apadbwq)
+#' dat <- subset(dat, select = 'do_mgl', 
+#'  subset = c('2013-01-22 00:00', '2013-01-26 00:00'))
+#' 
+#' # interpolate, maxgap of 10 records
+#' fill1 <- na.approx(dat, params = 'do_mgl', maxgap = 10)
+#' 
+#' # interpolate maxgap of 30 records
+#' fill2 <- na.approx(dat, params = 'do_mgl', maxgap = 30)
+#' 
+#' # plot for comparison
+#' par(mfrow = c(3, 1))
+#' plot(fill1, col = 'red', main = 'Interpolation - maximum gap of 10 records')
+#' lines(dat)
+#' plot(fill2, col = 'red', main = 'Interpolation - maximum gap of 30 records')
+#' lines(dat)
+na.approx.swmpr <- function(object, params = NULL, maxgap, ...){
+  
+  swmpr_in <- object
+  
+  # attributes
+  parameters <- attr(swmpr_in, 'parameters')
+  station <- attr(swmpr_in, 'station')
+  
+  # sanity checks
+  if(!any(params %in% parameters) & !is.null(params))
+    stop('Params argument must name input columns')
+  if(attr(swmpr_in, 'qaqc_cols'))
+    warning('QAQC columns present, removed in output')
+  
+  # prep for interpolate
+  if(!is.null(params)) parameters <- parameters[parameters %in% params]
+  to_interp <- swmpr_in[, c('datetimestamp', parameters), 
+                        drop = FALSE]
+  datetimestamp <- to_interp$datetimestamp
+  to_interp$datetimestamp <- NULL
+  
+  # interpolate column-wise
+  out <- lapply(c(to_interp),
+                FUN = function(in_col){
+                  
+                  interp <- try(zoo::na.approx(in_col, maxgap = maxgap, 
+                                               na.rm = FALSE), silent = TRUE, ...)
+                  
+                  if('try-error' %in% class(interp)) interp  <- in_col
+                  
+                  return(interp)
+                  
+                })
+  
+  # format output as data frame
+  out <- do.call('cbind', out)
+  out <- data.frame(datetimestamp, out)
+  names(out) <- c('datetimestamp', parameters)
+  
+  # format output as swmpr object
+  out <- swmpr(out, station)
+  
+  # return output
+  return(out)
+  
 }

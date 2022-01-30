@@ -11,7 +11,7 @@ shinyUI(fluidPage(
   
   h4('Created by Marcus W. Beck,', a('mbeck@tbep.org', href = 'mailto:mbeck@tbep.org'), "Todd O'Brien,", a('todd.obrien@noaa.gov', href = 'mailto:todd.obrien@noaa.gov')),
   
-  p('This interactive widget provides graphical summaries of water quality, weather, and nutrient station data from the System Wide Monitoring Program of the National Estuarine Research Reserve System ', a('(NERRS).', href = 'http://www.nerrs.noaa.gov/', target = '_blank'), 'The drop down menus can be used to select the station, date range, and parameter for plotting. The raw data used for plotting include all SWMP records from the earliest date at each station after processing to remove QAQC flags.  The data include observations through December 2021 and are current as of January 25, 2022.  Plots are based on daily averages for each parameter.  Cumulative precipitation data are based on the daily maximum. See the', a('GitHub repository', href='https://github.com/fawda123/swmp_summary', target = '_blank'), 'for source code.'),
+  p('This interactive widget provides graphical summaries of water quality, weather, and nutrient station data from the System Wide Monitoring Program of the National Estuarine Research Reserve System ', a('(NERRS).', href = 'http://www.nerrs.noaa.gov/', target = '_blank'), 'The drop down menus can be used to select the station, date range, and parameter for plotting. The raw data used for plotting include all SWMP records from the earliest date at each station after processing to remove QAQC flags.  The data include observations through December 2021 and are current as of January 25, 2022.  Plots are based on daily averages for each parameter. Missing values can be filled using the long-term average across years for each month (select "monthly averages") or as a linear interpolation between missing values (select "linear interpolation").  The monthly average works well for long gaps, but may not be an accurate representation of long-term trends, i.e., real averages may differ early vs late in the time series if a trend exists. The linear interpolation option is preferred for small gaps.  Cumulative precipitation data are based on the daily maximum. See the', a('GitHub repository', href='https://github.com/fawda123/swmp_summary', target = '_blank'), 'for source code.'),
   
   # buttons on top
   fluidRow(
@@ -38,9 +38,9 @@ shinyUI(fluidPage(
     ),
     
     column(3,
-      h4('Fill missing monthly values with average?'), 
+      h4('Fill missing values?'), 
            
-        selectInput('fill', label = '', choices = c(FALSE, TRUE))
+        selectInput('fill', label = '', choices = list('none' = 'none', 'monthly average' = 'monoclim', 'linear interpolation' = 'interp'))
            
     )
     
