@@ -206,8 +206,6 @@ plot_summary.swmpr <- function(swmpr_in, param, years = NULL, plt_sep = FALSE, s
   form_in <- formula(paste0(param, ' ~ month'))
   mo_agg <- aggregate(form_in, data = dat_plo[, !names(dat_plo) %in% c('year')], FUN = agg_fun)
   mo_agg_med <- aggregate(form_in, data = dat_plo[, !names(dat_plo) %in% c('year')], FUN = function(x) median(x, na.rm = T))
-  form_in <- formula(paste0(param, ' ~ year'))
-  yr_agg <- aggregate(form_in, data = dat_plo[, !names(dat_plo) %in% c('month')], FUN = agg_fun, na.action = na.pass)
   
   ##
   # plots
@@ -305,8 +303,10 @@ plot_summary.swmpr <- function(swmpr_in, param, years = NULL, plt_sep = FALSE, s
   })
 
   # annual anomalies
-  yr_avg <- mean(yr_agg[, param], na.rm = T)
-  yr_agg$anom <- yr_agg[, param] - yr_avg
+  yr_agg <- aggregate(V1 ~ year, to_plo, function(x) mean(x, na.rm = T),
+                      na.action = na.pass)
+  yr_avg <- mean(yr_agg[, 'V1'], na.rm = T)
+  yr_agg$anom <- yr_agg[, 'V1'] - yr_avg
   p6 <- suppressWarnings({ggplot(yr_agg, 
       aes_string(x = 'year', y = 'anom', group = '1', fill = 'anom')) +
     geom_bar(stat = 'identity') +
@@ -348,7 +348,7 @@ plot_summary.swmpr <- function(swmpr_in, param, years = NULL, plt_sep = FALSE, s
       
     # annual summaries
     sum_yr <- yr_agg
-    names(sum_yr)[names(sum_yr) %in% param] <- 'mean'
+    names(sum_yr)[names(sum_yr) %in% 'V1'] <- 'mean'
       
     return(list(sum_mo = sum_mo, sum_moyr = sum_moyr, sum_yr = sum_yr))
     
