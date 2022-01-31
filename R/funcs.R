@@ -8,6 +8,7 @@
 #' @param plt_sep logical if a list is returned with separate plot elements
 #' @param sum_out logical if summary data for the plots is returned
 #' @param fill logical indicating if missing monthly values are replaced by long term monthly averages
+#' @param base_size numeric for text size
 #' @param ... additional arguments passed to other methods, currently not used
 #' 
 #' @import ggplot2 gridExtra
@@ -56,7 +57,8 @@ plot_summary <- function(swmpr_in, ...) UseMethod('plot_summary')
 #' @concept analyze
 #' 
 #' @method plot_summary swmpr
-plot_summary.swmpr <- function(swmpr_in, param, years = NULL, plt_sep = FALSE, sum_out = FALSE, fill = c('none', 'monoclim', 'interp'), ...){
+plot_summary.swmpr <- function(swmpr_in, param, years = NULL, plt_sep = FALSE, sum_out = FALSE, fill = c('none', 'monoclim', 'interp'), 
+                               base_size = 11, ...){
   
   fill <- match.arg(fill)
   
@@ -211,7 +213,7 @@ plot_summary.swmpr <- function(swmpr_in, param, years = NULL, plt_sep = FALSE, s
   # plots
   
   # universal plot setting
-  my_theme <- theme(axis.text = element_text(size = 8))
+  my_theme <- theme()#axis.text = element_text(size = 10))
   
   # plot 1 - means and obs
   cols <- colorRampPalette(c('lightblue', 'lightgreen'))(nrow(mo_agg))
@@ -220,7 +222,7 @@ plot_summary.swmpr <- function(swmpr_in, param, years = NULL, plt_sep = FALSE, s
     geom_point(size = 2, alpha = 0.5, 
       position=position_jitter(width=0.1)
       ) +
-    theme_classic() +
+    theme_classic(base_size = base_size) +
     ylab(ylab) + 
     xlab('Monthly distributions and means') +
     geom_point(data = mo_agg, aes_string(x = 'month', y = param), 
@@ -233,7 +235,7 @@ plot_summary.swmpr <- function(swmpr_in, param, years = NULL, plt_sep = FALSE, s
   cols <- cols[rank(mo_agg_med[, param])]
   p2 <- suppressWarnings({ggplot(dat_plo, aes_string(x = 'month', y = param)) + 
     geom_boxplot(fill = cols) +
-    theme_classic() +
+    theme_classic(base_size = base_size) +
     ylab(ylab) + 
     xlab('Monthly distributions and medians') +
     my_theme
@@ -246,10 +248,10 @@ plot_summary.swmpr <- function(swmpr_in, param, years = NULL, plt_sep = FALSE, s
     geom_histogram(aes_string(y = '..density..'), colour = 'lightblue', binwidth = diff(range(to_plo[, param], na.rm = T))/30) + 
     facet_grid(month ~ .) + 
     xlab(ylab) +
-    theme_bw(base_family = 'Times') + 
+    theme_bw(base_family = 'Times', base_size = base_size) + 
     theme(axis.title.y = element_blank(), axis.text.y = element_blank(), 
       axis.ticks.y = element_blank(), 
-      strip.text.y = element_text(size = 8, angle = 90),
+      strip.text.y = element_text(angle = 90),
       strip.background = element_rect(size = 0, fill = 'lightblue')) +
     my_theme
   })
@@ -271,7 +273,7 @@ plot_summary.swmpr <- function(swmpr_in, param, years = NULL, plt_sep = FALSE, s
       )  +
     scale_fill_gradient2(name = ylab,
       low = 'lightblue', mid = 'lightgreen', high = 'tomato', midpoint = midpt) +
-    theme_classic() +
+    theme_classic(base_size = base_size) +
     ylab('Monthly means') +
     xlab('') +
     theme(legend.position = 'top', legend.title = element_blank()) +
@@ -294,7 +296,7 @@ plot_summary.swmpr <- function(swmpr_in, param, years = NULL, plt_sep = FALSE, s
     scale_fill_gradient2(name = ylab,
       low = 'lightblue', mid = 'lightgreen', high = 'tomato', midpoint = 0,
       limits = c(-1 * rngs, rngs)) +
-    theme_classic() +
+    theme_classic(base_size = base_size) +
     ylab('Monthly anomalies') +
     xlab('') +
     theme(legend.position = 'top', legend.title = element_blank()) +
@@ -312,7 +314,7 @@ plot_summary.swmpr <- function(swmpr_in, param, years = NULL, plt_sep = FALSE, s
       low = 'lightblue', mid = 'lightgreen', high = 'tomato', midpoint = 0
       ) +
     stat_smooth(method = 'lm', se = F, linetype = 'dashed', size = 1) +
-    theme_classic() +
+    theme_classic(base_size = base_size) +
     ylab('Annual anomalies') +
     xlab('') +
     theme(legend.position = 'none') +

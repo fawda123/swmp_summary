@@ -142,7 +142,7 @@ shinyServer(function(input, output, session) {
     req(var)
     
     # output
-    plot_summary(dat(), var, years, fill = fill)
+    plot_summary(dat(), var, years, fill = fill, base_size = 14)
     
     }
 
@@ -180,7 +180,7 @@ shinyServer(function(input, output, session) {
   
     plotInput()
     
-    }, height = 600, width = 1100)
+    }, height = 600)
   
   # table for monthly summary
   output$outtab_sum_mo <- DT::renderDataTable({
