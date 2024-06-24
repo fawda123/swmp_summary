@@ -274,8 +274,8 @@ plot_summary.swmpr <- function(swmpr_in, param, years = NULL, plt_sep = FALSE, s
     theme_classic(base_size = base_size) +
     ylab('Monthly means') +
     xlab('') +
-    theme(legend.position = 'top', legend.title = element_blank()) +
-    guides(fill = guide_colorbar(barheight = 0.5)) +
+    theme(legend.position = 'top', legend.title = element_blank(), axis.text.x = element_text(size = 9)) +
+    guides(fill = guide_colorbar(theme = theme(legend.key.width  = unit(15, "lines"), legend.key.height = unit(0.5, "lines")))) +
     my_theme
   })
   
@@ -297,8 +297,8 @@ plot_summary.swmpr <- function(swmpr_in, param, years = NULL, plt_sep = FALSE, s
     theme_classic(base_size = base_size) +
     ylab('Monthly anomalies') +
     xlab('') +
-    theme(legend.position = 'top', legend.title = element_blank()) +
-    guides(fill = guide_colorbar(barheight= 0.5)) +
+    theme(legend.position = 'top', legend.title = element_blank(), axis.text.x = element_text(size = 9)) +
+    guides(fill = guide_colorbar(theme = theme(legend.key.width  = unit(15, "lines"), legend.key.height = unit(0.5, "lines")))) +
     my_theme
   })
 
@@ -317,7 +317,7 @@ plot_summary.swmpr <- function(swmpr_in, param, years = NULL, plt_sep = FALSE, s
     theme_classic(base_size = base_size) +
     ylab('Annual anomalies') +
     xlab('') +
-    theme(legend.position = 'none') +
+    theme(legend.position = 'none', axis.text.x = element_text(size = 9)) +
     my_theme
   })
 
@@ -360,7 +360,7 @@ plot_summary.swmpr <- function(swmpr_in, param, years = NULL, plt_sep = FALSE, s
     arrangeGrob(p1, p2, ncol = 1), 
     p3, 
     arrangeGrob(p4, p5, p6, ncol = 1, heights = c(1, 1, 0.8)), 
-    ncol = 3, widths = c(0.8, 0.5, 1.2)
+    ncol = 3, widths = c(0.8, 0.3, 1.4)
   ))
 
 }
