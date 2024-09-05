@@ -11,7 +11,7 @@ shinyUI(fluidPage(
   
   h4('Created by Marcus W. Beck,', a('mbeck@tbep.org', href = 'mailto:mbeck@tbep.org'), "Todd O'Brien,", a('todd.obrien@noaa.gov', href = 'mailto:todd.obrien@noaa.gov')),
   
-  p('This interactive widget provides graphical summaries of water quality, weather, and nutrient station data from the System Wide Monitoring Program of the National Estuarine Research Reserve System ', a('(NERRS).', href = 'http://www.nerrs.noaa.gov/', target = '_blank'), 'The drop down menus can be used to select the station, date range, and parameter for plotting. The raw data used for plotting include all SWMP records from the earliest date at each station after processing to remove QAQC flags.  The data include observations through December 2023 and are current as of June 24th, 2024.  Plots are based on daily averages for each parameter. Missing values can be filled using the long-term average across years for each month (select "monthly averages") or as a linear interpolation between missing values (select "linear interpolation").  The monthly average works well for long gaps, but may not be an accurate representation of long-term trends, i.e., real averages may differ early vs late in the time series if a trend exists. The linear interpolation option is preferred for small gaps.  Cumulative precipitation data are based on the daily maximum. See the', a('GitHub repository', href='https://github.com/fawda123/swmp_summary', target = '_blank'), 'for source code.'),
+  p('This interactive widget provides graphical summaries of water quality, weather, and nutrient station data from the System Wide Monitoring Program of the National Estuarine Research Reserve System ', a('(NERRS).', href = 'http://www.nerrs.noaa.gov/', target = '_blank'), 'The drop down menus can be used to select the station, date range, and parameter for plotting. The raw data used for plotting include all SWMP records from the earliest date at each station after processing to remove QAQC flags.  The data include observations through December 2023 and are current as of June 24th, 2024.  Plots and tables are based on daily averages for each parameter. Missing values can be filled using the long-term average across years for each month (select "monthly averages") or as a linear interpolation between missing values (select "linear interpolation").  The monthly average works well for long gaps, but may not be an accurate representation of long-term trends, i.e., real averages may differ early vs late in the time series if a trend exists. The linear interpolation option is preferred for small gaps.  Cumulative precipitation data are based on the daily maximum. See the', a('GitHub repository', href='https://github.com/fawda123/swmp_summary', target = '_blank'), 'for source code.'),
   
   # buttons on top
   fluidRow(
@@ -66,7 +66,7 @@ shinyUI(fluidPage(
         tabPanel('Monthly summary',
           
           column(12, 
-            p('Tabular summary of monthly aggregations showing minimum, first quartile, median, mean, third quartile, maximum, missing values, and variance.'),
+            p('Tabular summary of monthly aggregations showing minimum, first quartile, median, mean, third quartile, maximum, missing values, and variance.  Summaries are from daily averages.'),
             DT::dataTableOutput('outtab_sum_mo')
           )
           
@@ -75,7 +75,7 @@ shinyUI(fluidPage(
         tabPanel('Monthly, annual summary',
           
           column(12, 
-            p('Average values for monthly aggregations by year.  The trend indicates the average value across all years for the same month and the anomaly is the difference between the mean and trend.'),
+            p('Average values for monthly aggregations by year.  The trend indicates the average value across all years for the same month and the anomaly is the difference between the mean and trend.  Summaries are from daily averages.'),
             DT::dataTableOutput('outtab_sum_moyr')
             )
             
@@ -84,7 +84,7 @@ shinyUI(fluidPage(
         tabPanel('Annual summary',
           
           column(12, 
-            p('Average values for annual aggregations.  The anomalies are the differences between the annual averages and overall average.'),
+            p('Average values for annual aggregations.  The anomalies are the differences between the annual averages and overall average. Summaries are from daily averages.'),
             DT::dataTableOutput('outtab_sum_yr')
             )
           ), 
