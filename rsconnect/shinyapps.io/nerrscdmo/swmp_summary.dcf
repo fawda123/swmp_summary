@@ -5,6 +5,7 @@ account: nerrscdmo
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 13625220
-bundleId: 9547039
+bundleId: 9638815
 url: https://nerrscdmo.shinyapps.io/swmp_summary/
-version: 1
+when: 1736706795.20641
+lastSyncTime: 1736706795.20642
